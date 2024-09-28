@@ -3,17 +3,16 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:80"
+    container_name: app
     restart: always
     volumes:
-      - .:/var/www/html/
+      - ./apache.conf:/etc/apache2/sites-available/000-default.conf
+      - ./dynamic:/var/www/dynamic
     depends_on:
       - db
 
   db:
-    image: mysql:8.0-debian
+    image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: appDB
@@ -24,5 +23,20 @@ services:
       - db_data:/var/lib/mysql/
     ports:
       - "3306:3306"
+
+  
+  nginx:
+    image: nginx:1.27.1-alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./static:/var/www/static
+      - ./dynamic:/var/www/dynamic
+    depends_on:
+      - app
+
 volumes:
   db_data:
